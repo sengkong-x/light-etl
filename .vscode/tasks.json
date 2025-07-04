@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Set up environment",
+      "type": "shell",
+      "command": "docker network inspect local-network >/dev/null 2>&1 || docker network create local-network && docker volume create oracle-data && docker volume create mssql-data && docker volume create dbeaver-data",
+      "problemMatcher": [],
+      "detail": "Set up Docker network and persistent Docker volumes for Oracle, SQL Server, and DBeaver."
+    },
+    {
+      "label": "Start Oracle XE container",
+      "type": "shell",
+      "command": "docker run -d --name oracle-db --network local-network -p 1521:1521 -e ORACLE_PASSWORD=Abcd1234 -v oracle-data:/opt/oracle/oradata gvenzl/oracle-xe:21.3.0-slim",
+      "problemMatcher": [],
+      "detail": "Run an Oracle XE container."
+    },
+    {
+      "label": "Start SQL Server container",
+      "type": "shell",
+      "command": "docker run -d --name mssql-db --network local-network -p 1433:1433 -e ACCEPT_EULA=Y -e SA_PASSWORD=Abcd1234 -v mssql-data:/var/opt/mssql mcr.microsoft.com/mssql/server:2022-latest",
+      "problemMatcher": [],
+      "detail": "Run a SQL Server container."
+    },
+    {
+      "label": "Start DBeaver container",
+      "type": "shell",
+      "command": "docker run -d --name dbeaver --network local-network -p 8978:8978 -v dbeaver-data:/opt/cloudbeaver/workspace dbeaver/cloudbeaver:latest",
+      "problemMatcher": [],
+      "detail": "Run a DBeaver container."
+    },
+    {
+      "label": "Stop all containers",
+      "type": "shell",
+      "command": "docker ps -q | xargs -r docker stop && docker ps -a -q | xargs -r docker rm",
+      "problemMatcher": [],
+      "detail": "Stop and remove all running containers."
+    }
+  ]
+}
