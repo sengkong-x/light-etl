@@ -1,5 +1,6 @@
 CREATE OR REPLACE PACKAGE PKG_ETL AS
     FUNCTION GEN_MERGE(src_obj IN VARCHAR2, dst_obj IN VARCHAR2) RETURN CLOB;
+    PROCEDURE EXEC_ETL(id IN NUMBER, dry_run IN BOOLEAN DEFAULT FALSE);
 END PKG_ETL;
 /
 
@@ -26,6 +27,18 @@ CREATE OR REPLACE PACKAGE BODY PKG_ETL AS
             'ON (' || l_on_clause || ') ' ||
             'WHEN MATCHED THEN UPDATE SET ' || l_update_clause || ' ' ||
             'WHEN NOT MATCHED THEN INSERT (' || l_dst_insert_clause || ') VALUES (' || l_src_insert_clause || ')';
-    END;
+    END GEN_MERGE;
+
+    PROCEDURE EXEC_ETL(id IN NUMBER, dry_run IN BOOLEAN DEFAULT FALSE) IS
+        l_sql CLOB;
+    BEGIN
+        SELECT GEN_MERGE(SRC_OBJ, DST_OBJ) INTO l_sql FROM ETL_MAPPINGS WHERE ID = id;
+        EXECUTE IMMEDIATE l_sql;
+        IF dry_run THEN
+            ROLLBACK;
+        ELSE
+            COMMIT;
+        END IF;
+    END EXEC_ETL;
 END PKG_ETL;
 /
